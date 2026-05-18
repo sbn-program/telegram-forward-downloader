@@ -43,12 +43,19 @@ jobs:
       - name: ⬇️ Install downloader
         run: sudo apt update && sudo apt install -y aria2
 
-      - name: ⬇️ Download file
+      - name: ⬇️ Download file (debug)
         run: |
+          echo "URL => '${{ github.event.inputs.url }}'"
+      
           if [ -z "${{ github.event.inputs.url }}" ]; then
-            echo "❌ لینک دانلود ندادی"
+            echo "❌ لینک دانلود خالی است"
             exit 1
           fi
-
+      
           mkdir -p files
-          aria2c "${{ github.event.inputs.url }}" -d files
+      
+          aria2c \
+            --console-log-level=notice \
+            --summary-interval=5 \
+            "${{ github.event.inputs.url }}" \
+            -d files
