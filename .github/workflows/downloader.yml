@@ -1,4 +1,4 @@
-name: 🔥 Advanced Downloader - Phase 1
+name: 🔥 Advanced Downloader - Phase 2
 
 on:
   workflow_dispatch:
@@ -6,9 +6,8 @@ on:
       activation_code:
         description: '🔑 کد فعالسازی'
         required: false
-        default: ''
       urls:
-        description: '🔗 چند لینک (با فاصله جدا شود)'
+        description: '🔗 لینک‌ها (با فاصله)'
         required: true
       zip_mode:
         description: '📦 حالت خروجی'
@@ -18,11 +17,9 @@ on:
         options:
           - normal
           - zip
-          - split
       zip_password:
-        description: '🔒 رمز زیپ (اختیاری)'
+        description: '🔒 رمز زیپ'
         required: false
-        default: ''
 
 env:
   VALID_CODE: "1234"
@@ -32,54 +29,31 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-      - name: 🧱 Checkout repo
-        uses: actions/checkout@v4
+      - uses: actions/checkout@v4
 
-      - name: 🔍 Check activation
-        id: check
-        run: |
-          if [ -f ".activated" ]; then
-            echo "activated=true" >> $GITHUB_OUTPUT
-          else
-            echo "activated=false" >> $GITHUB_OUTPUT
-          fi
+      - name: Install tools
+        run: sudo apt update && sudo apt install -y aria2 zip
 
-      - name: 🔑 Activate (if needed)
-        if: steps.check.outputs.activated == 'false'
-        run: |
-          if [ -z "${{ github.event.inputs.activation_code }}" ]; then
-            echo "❌ کد فعالسازی نداریم!"
-            exit 1
-          fi
+      - name: Make scripts executable
+        run: chmod +x scripts/*.sh
 
-          if [ "${{ github.event.inputs.activation_code }}" != "${{ env.VALID_CODE }}" ]; then
-            echo "❌ کد فعالسازی اشتباه است"
-            exit 1
-          fi
+      - name: 🔑 Activation
+        run: ./scripts/activate.sh
+        env:
+          ACTIVATION_CODE: ${{ github.event.inputs.activation_code }}
 
-          echo "✅ Activated"; echo "1" > .activated
+      - name: ⬇️ Download
+        run: ./scripts/download.sh
+        env:
+          URLS: ${{ github.event.inputs.urls }}
 
-      - name: ⬇️ Install tools
-        run: sudo apt update && sudo apt install -y aria2 zip git
+      - name: 🗜️ ZIP
+        run: ./scripts/zip.sh
+        env:
+          ZIP_MODE: ${{ github.event.inputs.zip_mode }}
+          ZIP_PASSWORD: ${{ github.event.inputs.zip_password }}
 
-      - name: ⬇️ Download files
-        run: |
-          mkdir -p downloads
-          for u in ${{ github.event.inputs.urls }}; do
-            echo "Downloading: $u"
-            aria2c "$u" -d downloads
-          done
-
-      - name: 🗜️ ZIP (optional)
-        if: github.event.inputs.zip_mode == 'zip'
-        run: |
-          if [ -n "${{ github.event.inputs.zip_password }}" ]; then
-            zip -P "${{ github.event.inputs.zip_password }}" -r output.zip downloads
-          else
-            zip -r output.zip downloads
-          fi
-
-      - name: 📤 Upload artifacts
+      - name: 📤 Upload result
         uses: actions/upload-artifact@v4
         with:
           name: result
