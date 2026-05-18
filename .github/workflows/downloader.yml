@@ -1,4 +1,4 @@
-name: Downloader Step 3
+name: Downloader Fixed
 
 on:
   workflow_dispatch:
@@ -11,52 +11,44 @@ on:
         required: false
 
 jobs:
-  check:
+  main:
     runs-on: ubuntu-latest
-    outputs:
-      activated: ${{ steps.out.outputs.activated }}
     steps:
-      - id: out
+
+      - name: 🔍 Check activation
         run: |
           if [ -f ".activated" ]; then
-            echo "activated=true" >> $GITHUB_OUTPUT
+            echo "ACTIVATED=true" >> $GITHUB_ENV
           else
-            echo "activated=false" >> $GITHUB_OUTPUT
+            echo "ACTIVATED=false" >> $GITHUB_ENV
           fi
 
-  activate:
-    needs: check
-    if: needs.check.outputs.activated == 'false' && github.event.inputs.activation_code != ''
-    runs-on: ubuntu-latest
-    steps:
-      - run: |
-          if [ "${{ github.event.inputs.activation_code }}" = "1234" ]; then
+      - name: 🔑 Activate if needed
+        run: |
+          if [ "$ACTIVATED" = "false" ]; then
+            if [ -z "${{ github.event.inputs.activation_code }}" ]; then
+              echo "❌ هنوز فعال نشده‌ای"
+              exit 1
+            fi
+
+            if [ "${{ github.event.inputs.activation_code }}" != "1234" ]; then
+              echo "❌ کد فعالسازی اشتباه است"
+              exit 1
+            fi
+
             echo "✅ Activated"
             echo "1" > .activated
-          else
-            echo "❌ Wrong code"
-            exit 1
           fi
 
-  download:
-    needs: [check, activate]
-    if: needs.check.outputs.activated == 'true' || success()
-    runs-on: ubuntu-latest
-    steps:
-      - name: ✅ اجازه دانلود داری
-        run: echo "✅ اجازه دانلود داری"
-
-      # ✅✅✅ مرحله ۷ از همین‌جا شروع می‌شود ✅✅✅
-
-      - name: Install downloader
+      - name: ⬇️ Install downloader
         run: sudo apt update && sudo apt install -y aria2
 
-      - name: Download file
+      - name: ⬇️ Download file
         run: |
           if [ -z "${{ github.event.inputs.url }}" ]; then
             echo "❌ لینک دانلود ندادی"
             exit 1
           fi
 
-          mkdir files
+          mkdir -p files
           aria2c "${{ github.event.inputs.url }}" -d files
