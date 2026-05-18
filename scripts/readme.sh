@@ -4,20 +4,20 @@ set -e
 REPO_URL="https://github.com/${GITHUB_REPOSITORY}"
 
 cat > README.md <<EOF
-# 📦 Download Files
+# 📦 Downloads
 
 ✅ Auto Generated  
 🕒 $(date)
 
-## 🔗 Download Parts (WinRAR Compatible)
-
 EOF
 
-for f in output/output.zip output/output.z*; do
-  FILE=$(basename "$f")
-  echo "- [$FILE]($REPO_URL/raw/main/output/$FILE)" >> README.md
-done
+for DIR in output/*; do
+  NAME=$(basename "$DIR")
+  echo "## 📁 $NAME" >> README.md
 
-git add README.md
-git commit -m "📝 Update README"
-git push origin main
+  for f in "$DIR"/*; do
+    FILE=$(basename "$f")
+    echo "- [$FILE]($REPO_URL/raw/main/output/$NAME/$FILE)" >> README.md
+  done
+
+  echo "" >> README.md
