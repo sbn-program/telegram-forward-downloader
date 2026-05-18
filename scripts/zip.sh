@@ -42,3 +42,4 @@ for DIR in downloads/*; do
   fi
 
   echo "✅ Split ZIP created for $NAME"
+done
