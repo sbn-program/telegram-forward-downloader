@@ -1,10 +1,20 @@
-name: Test Action
+name: Downloader Step 1
 
 on:
   workflow_dispatch:
+    inputs:
+      activation_code:
+        description: 'کد فعالسازی'
+        required: false
+      url:
+        description: 'لینک دانلود'
+        required: false
 
 jobs:
-  test:
+  inputs-test:
     runs-on: ubuntu-latest
     steps:
-      - run: echo "✅ Action is working"
+      - name: Show inputs
+        run: |
+          echo "Activation Code: ${{ github.event.inputs.activation_code }}"
+          echo "URL: ${{ github.event.inputs.url }}"
