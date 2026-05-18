@@ -12,7 +12,7 @@ for DIR in downloads/*; do
   [ -d "$DIR" ] || continue
 
   NAME=$(basename "$DIR")
-  OUTDIR="output/$NAME"
+  OUTDIR="downloads/$NAME"
   mkdir -p "$OUTDIR"
 
   echo "🗜️ Zipping $NAME ..."
