@@ -1,4 +1,4 @@
-name: Downloader Step 1
+name: Downloader Step 3
 
 on:
   workflow_dispatch:
@@ -11,10 +11,36 @@ on:
         required: false
 
 jobs:
-  inputs-test:
+  check:
+    runs-on: ubuntu-latest
+    outputs:
+      activated: ${{ steps.out.outputs.activated }}
+    steps:
+      - id: out
+        run: |
+          if [ -f ".activated" ]; then
+            echo "activated=true" >> $GITHUB_OUTPUT
+          else
+            echo "activated=false" >> $GITHUB_OUTPUT
+          fi
+
+  activate:
+    needs: check
+    if: needs.check.outputs.activated == 'false' && github.event.inputs.activation_code != ''
     runs-on: ubuntu-latest
     steps:
-      - name: Show inputs
-        run: |
-          echo "Activation Code: ${{ github.event.inputs.activation_code }}"
-          echo "URL: ${{ github.event.inputs.url }}"
+      - run: |
+          if [ "${{ github.event.inputs.activation_code }}" = "1234" ]; then
+            echo "✅ Activated"
+            echo "1" > .activated
+          else
+            echo "❌ Wrong code"
+            exit 1
+          fi
+
+  download:
+    needs: [check, activate]
+    if: needs.check.outputs.activated == 'true' || success()
+    runs-on: ubuntu-latest
+    steps:
+      - run: echo "✅ اجازه دانلود داری"
