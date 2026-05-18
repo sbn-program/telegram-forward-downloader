@@ -1,14 +1,17 @@
 #!/bin/bash
 set -e
 
-if [ -z "$URLS" ]; then
-  echo "❌ URLS is empty"
-  exit 1
-fi
-
 mkdir -p downloads
 
-for u in $URLS; do
-  echo "⬇️ Downloading: $u"
-  aria2c "$u" -d downloads
-done
+INDEX=1
+
+echo "$URLS" | while read -r URL; do
+  [ -z "$URL" ] && continue
+
+  DIR="downloads/file_$INDEX"
+  mkdir -p "$DIR"
+
+  echo "⬇️ Downloading to $DIR"
+  aria2c -x16 -s16 -k1M "$URL" -d "$DIR"
+
+  INDEX=$((INDEX + 1))
