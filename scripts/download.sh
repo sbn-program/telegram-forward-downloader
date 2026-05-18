@@ -15,3 +15,4 @@ echo "$URLS" | while read -r URL; do
   aria2c -x16 -s16 -k1M "$URL" -d "$DIR"
 
   INDEX=$((INDEX + 1))
+done
