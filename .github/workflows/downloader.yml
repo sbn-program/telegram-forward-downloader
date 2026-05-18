@@ -1,61 +1,88 @@
-name: Downloader Fixed
+name: 🔥 Advanced Downloader - Phase 1
 
 on:
   workflow_dispatch:
     inputs:
       activation_code:
-        description: 'کد فعالسازی'
+        description: '🔑 کد فعالسازی'
         required: false
-      url:
-        description: 'لینک دانلود'
+        default: ''
+      urls:
+        description: '🔗 چند لینک (با فاصله جدا شود)'
+        required: true
+      zip_mode:
+        description: '📦 حالت خروجی'
         required: false
+        default: normal
+        type: choice
+        options:
+          - normal
+          - zip
+          - split
+      zip_password:
+        description: '🔒 رمز زیپ (اختیاری)'
+        required: false
+        default: ''
+
+env:
+  VALID_CODE: "1234"
 
 jobs:
   main:
     runs-on: ubuntu-latest
+
     steps:
+      - name: 🧱 Checkout repo
+        uses: actions/checkout@v4
 
       - name: 🔍 Check activation
+        id: check
         run: |
           if [ -f ".activated" ]; then
-            echo "ACTIVATED=true" >> $GITHUB_ENV
+            echo "activated=true" >> $GITHUB_OUTPUT
           else
-            echo "ACTIVATED=false" >> $GITHUB_ENV
+            echo "activated=false" >> $GITHUB_OUTPUT
           fi
 
-      - name: 🔑 Activate if needed
+      - name: 🔑 Activate (if needed)
+        if: steps.check.outputs.activated == 'false'
         run: |
-          if [ "$ACTIVATED" = "false" ]; then
-            if [ -z "${{ github.event.inputs.activation_code }}" ]; then
-              echo "❌ هنوز فعال نشده‌ای"
-              exit 1
-            fi
-
-            if [ "${{ github.event.inputs.activation_code }}" != "1234" ]; then
-              echo "❌ کد فعالسازی اشتباه است"
-              exit 1
-            fi
-
-            echo "✅ Activated"
-            echo "1" > .activated
-          fi
-
-      - name: ⬇️ Install downloader
-        run: sudo apt update && sudo apt install -y aria2
-
-      - name: ⬇️ Download file (debug)
-        run: |
-          echo "URL => '${{ github.event.inputs.url }}'"
-      
-          if [ -z "${{ github.event.inputs.url }}" ]; then
-            echo "❌ لینک دانلود خالی است"
+          if [ -z "${{ github.event.inputs.activation_code }}" ]; then
+            echo "❌ کد فعالسازی نداریم!"
             exit 1
           fi
-      
-          mkdir -p files
-      
-          aria2c \
-            --console-log-level=notice \
-            --summary-interval=5 \
-            "${{ github.event.inputs.url }}" \
-            -d files
+
+          if [ "${{ github.event.inputs.activation_code }}" != "${{ env.VALID_CODE }}" ]; then
+            echo "❌ کد فعالسازی اشتباه است"
+            exit 1
+          fi
+
+          echo "✅ Activated"; echo "1" > .activated
+
+      - name: ⬇️ Install tools
+        run: sudo apt update && sudo apt install -y aria2 zip git
+
+      - name: ⬇️ Download files
+        run: |
+          mkdir -p downloads
+          for u in ${{ github.event.inputs.urls }}; do
+            echo "Downloading: $u"
+            aria2c "$u" -d downloads
+          done
+
+      - name: 🗜️ ZIP (optional)
+        if: github.event.inputs.zip_mode == 'zip'
+        run: |
+          if [ -n "${{ github.event.inputs.zip_password }}" ]; then
+            zip -P "${{ github.event.inputs.zip_password }}" -r output.zip downloads
+          else
+            zip -r output.zip downloads
+          fi
+
+      - name: 📤 Upload artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: result
+          path: |
+            downloads
+            output.zip
