@@ -1,6 +1,9 @@
 #!/bin/bash
 set -e
 
+git config user.name "github-actions"
+git config user.email "actions@github.com"
+
 REPO_URL="https://github.com/${GITHUB_REPOSITORY}"
 
 cat > README.md <<EOF
@@ -22,3 +25,13 @@ for DIR in output/*; do
 
   echo "" >> README.md
 done
+
+git add README.md
+
+if git diff --cached --quiet; then
+  echo "ℹ️ README unchanged"
+  exit 0
+fi
+
+git commit -m "📝 Update README"
+git push origin main
