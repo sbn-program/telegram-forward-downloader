@@ -1,12 +1,15 @@
 #!/bin/bash
 set -e
 
-SPLIT_SIZE="${SPLIT_SIZE:-2G}"
+SPLIT_SIZE="50M"
 
 if [ ! -f output.zip ]; then
-  echo "ℹ️ No zip file to split"
-  exit 0
+  echo "❌ output.zip not found"
+  exit 1
 fi
 
+echo "✂️ Splitting ZIP into 50MB parts..."
 split -b "$SPLIT_SIZE" output.zip output.part.
-echo "✅ ZIP split done"
+
+rm output.zip
+echo "✅ Split completed"
