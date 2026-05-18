@@ -4,7 +4,7 @@ set -e
 git config user.name "github-actions"
 git config user.email "actions@github.com"
 
-git add output README.md
+git add output
 
 if git diff --cached --quiet; then
   echo "ℹ️ Nothing to push"
