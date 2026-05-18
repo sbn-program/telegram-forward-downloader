@@ -6,22 +6,38 @@ git config user.email "actions@github.com"
 
 REPO_URL="https://github.com/${GITHUB_REPOSITORY}"
 
-cat > README.md <<EOF
-# 📦 Downloads
+for DIR in output/*; do
+  [ -d "$DIR" ] || continue
+
+  ID=$(basename "$DIR")
+  README="$DIR/README.md"
+
+  cat > "$README" <<EOF
+# 📦 Download Package
 
 ✅ Auto Generated  
+🆔 ID: $ID  
 🕒 $(date)
 
+## 🔗 Files
 EOF
-
-for DIR in output/*; do
-  ID=$(basename "$DIR")
-  echo "## 📁 $ID" >> README.md
 
   for f in "$DIR"/*; do
     FILE=$(basename "$f")
-    echo "- [$FILE]($REPO_URL/raw/main/output/$ID/$FILE)" >> README.md
+    [ "$FILE" = "README.md" ] && continue
+    echo "- [$FILE]($REPO_URL/raw/main/output/$ID/$FILE)" >> "$README"
   done
+done
+
+git add output
+
+if git diff --cached --quiet; then
+  echo "ℹ️ No README changes"
+  exit 0
+fi
+
+git commit -m "📝 Update package README(s)"
+git push origin main
 
   echo "" >> README.md
 done
