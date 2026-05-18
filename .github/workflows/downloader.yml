@@ -17,6 +17,7 @@ on:
         options:
           - normal
           - zip
+          - split
       zip_password:
         description: '🔒 رمز زیپ'
         required: false
