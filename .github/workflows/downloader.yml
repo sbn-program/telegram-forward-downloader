@@ -20,6 +20,11 @@ on:
       zip_password:
         description: '🔒 رمز زیپ'
         required: false
+      split_size:
+        description: '📦 حجم هر پارت (مثلاً 2G)'
+        required: false
+        default: 2G
+
 
 env:
   VALID_CODE: "1234"
@@ -72,3 +77,9 @@ jobs:
           path: |
             downloads
             output.zip
+
+      - name: ✂️ Split ZIP
+        if: github.event.inputs.zip_mode == 'split'
+        run: ./scripts/split.sh
+        env:
+          SPLIT_SIZE: ${{ github.event.inputs.split_size }}
