@@ -43,4 +43,20 @@ jobs:
     if: needs.check.outputs.activated == 'true' || success()
     runs-on: ubuntu-latest
     steps:
-      - run: echo "✅ اجازه دانلود داری"
+      - name: ✅ اجازه دانلود داری
+        run: echo "✅ اجازه دانلود داری"
+
+      # ✅✅✅ مرحله ۷ از همین‌جا شروع می‌شود ✅✅✅
+
+      - name: Install downloader
+        run: sudo apt update && sudo apt install -y aria2
+
+      - name: Download file
+        run: |
+          if [ -z "${{ github.event.inputs.url }}" ]; then
+            echo "❌ لینک دانلود ندادی"
+            exit 1
+          fi
+
+          mkdir files
+          aria2c "${{ github.event.inputs.url }}" -d files
