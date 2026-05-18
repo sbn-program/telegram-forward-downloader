@@ -11,13 +11,13 @@ cat > README.md <<EOF
 
 EOF
 
-for DIR in downloads/*; do
-  NAME=$(basename "$DIR")
-  echo "## 📁 $NAME" >> README.md
+for DIR in output/*; do
+  ID=$(basename "$DIR")
+  echo "## 📁 $ID" >> README.md
 
   for f in "$DIR"/*; do
     FILE=$(basename "$f")
-    echo "- [$FILE]($REPO_URL/raw/main/downloads/$NAME/$FILE)" >> README.md
+    echo "- [$FILE]($REPO_URL/raw/main/output/$ID/$FILE)" >> README.md
   done
 
   echo "" >> README.md
