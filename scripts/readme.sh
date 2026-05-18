@@ -51,3 +51,5 @@ fi
 
 git commit -m "📝 Update README"
 git push origin main
+
+done
