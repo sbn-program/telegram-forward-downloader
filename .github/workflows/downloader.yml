@@ -99,3 +99,8 @@ jobs:
         env:
           PUSH_BRANCH: downloads
 
+      - name: 📝 Generate README
+        if: github.event.inputs.push_mode == 'on'
+        run: ./scripts/readme.sh
+
+
