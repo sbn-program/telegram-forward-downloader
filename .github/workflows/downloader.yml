@@ -37,10 +37,22 @@ jobs:
       - name: Make scripts executable
         run: chmod +x scripts/*.sh
 
+      - name: ♻️ Restore activation cache
+        uses: actions/cache@v4
+        with:
+          path: .activated
+          key: activation-cache-v1
+
       - name: 🔑 Activation
         run: ./scripts/activate.sh
         env:
           ACTIVATION_CODE: ${{ github.event.inputs.activation_code }}
+          
+      - name: 💾 Save activation cache
+        uses: actions/cache@v4
+        with:
+          path: .activated
+          key: activation-cache-v1
 
       - name: ⬇️ Download
         run: ./scripts/download.sh
