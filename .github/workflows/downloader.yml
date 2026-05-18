@@ -1,3 +1,6 @@
+permissions:
+  contents: write
+
 name: 🔥 Advanced Downloader - Phase 2
 
 on:
@@ -45,6 +48,8 @@ jobs:
 
     steps:
       - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
 
       - name: Install tools
         run: sudo apt update && sudo apt install -y aria2 zip
