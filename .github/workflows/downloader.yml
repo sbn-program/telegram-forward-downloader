@@ -1,41 +1,28 @@
 permissions:
   contents: write
 
-name: 🔥 Advanced Downloader - Phase 3 (Final)
+name: 🔥 Auto Downloader (Commercial)
 
 on:
   workflow_dispatch:
     inputs:
       activation_code:
-        description: '🔑 کد فعالسازی (فقط بار اول)'
+        description: '🔑 Activation code (once)'
         required: false
       urls:
-        description: '🔗 لینک‌ها (با فاصله)'
+        description: '🔗 Download link'
         required: true
       zip_mode:
-        description: '📦 حالت خروجی'
+        description: '📦 Zip output'
         required: false
-        default: normal
+        default: zip
         type: choice
         options:
-          - normal
           - zip
-          - split
+          - normal
       zip_password:
-        description: '🔒 رمز زیپ'
+        description: '🔒 Zip password'
         required: false
-      split_size:
-        description: '📦 حجم هر پارت (مثلاً 2G)'
-        required: false
-        default: 2G
-      push_mode:
-        description: '🚀 ارسال به ریپو'
-        required: false
-        default: 'off'
-        type: choice
-        options:
-          - off
-          - on
 
 env:
   VALID_CODE: "1234"
@@ -45,72 +32,54 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-      - name: 📥 Checkout
-        uses: actions/checkout@v4
+      - uses: actions/checkout@v4
         with:
           fetch-depth: 0
 
-      - name: 🧰 Install tools
-        run: sudo apt update && sudo apt install -y aria2 zip
+      - run: sudo apt update && sudo apt install -y aria2 zip
 
-      - name: 🔓 Make scripts executable
-        run: chmod +x scripts/*.sh
+      - run: chmod +x scripts/*.sh
 
-      # ---------- Activation (cached) ----------
-      - name: ♻️ Restore activation cache
-        uses: actions/cache@v4
+      - uses: actions/cache@v4
         with:
           path: .activated
           key: activation-cache-v1
 
-      - name: 🔑 Activation
+      - name: 🔑 Activate
         run: ./scripts/activate.sh
         env:
           ACTIVATION_CODE: ${{ github.event.inputs.activation_code }}
 
-      - name: 💾 Save activation cache
-        uses: actions/cache@v4
+      - uses: actions/cache@v4
         with:
           path: .activated
           key: activation-cache-v1
 
-      # ---------- Download ----------
       - name: ⬇️ Download
         run: ./scripts/download.sh
         env:
           URLS: ${{ github.event.inputs.urls }}
 
-      # ---------- ZIP / Split ----------
       - name: 🗜️ ZIP
         run: ./scripts/zip.sh
         env:
           ZIP_MODE: ${{ github.event.inputs.zip_mode }}
           ZIP_PASSWORD: ${{ github.event.inputs.zip_password }}
 
-      - name: ✂️ Split ZIP
-        if: github.event.inputs.zip_mode == 'split'
+      - name: ✂️ Auto Split (50MB)
+        if: github.event.inputs.zip_mode == 'zip'
         run: ./scripts/split.sh
-        env:
-          SPLIT_SIZE: ${{ github.event.inputs.split_size }}
 
-      # ---------- Push & README ----------
-      - name: 🚀 Push to repository
-        if: github.event.inputs.push_mode == 'on'
+      - name: 🚀 Auto Push
         run: ./scripts/push.sh
-        env:
-          PUSH_BRANCH: downloads
 
-      - name: 📝 Generate README
-        if: github.event.inputs.push_mode == 'on'
+      - name: 📝 README
         run: ./scripts/readme.sh
 
-      # ---------- Artifact (آخر کار) ----------
-      - name: 📤 Upload result
+      - name: 📤 Artifact
         uses: actions/upload-artifact@v4
         with:
           name: result
           path: |
-            downloads
             output
-            output.zip
-            output.part.*
+            downloads
