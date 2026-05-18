@@ -6,12 +6,12 @@ if [ "$ZIP_MODE" != "zip" ]; then
   exit 0
 fi
 
-echo "🗜️ Creating ZIP..."
+echo "🗜️ Creating WinRAR-compatible split ZIP (50MB)..."
 
 if [ -n "$ZIP_PASSWORD" ]; then
-  zip -P "$ZIP_PASSWORD" -r output.zip downloads
+  zip -P "$ZIP_PASSWORD" -r -s 50m output.zip downloads
 else
-  zip -r output.zip downloads
+  zip -r -s 50m output.zip downloads
 fi
 
-echo "✅ ZIP created"
+echo "✅ ZIP + SPLIT done"
