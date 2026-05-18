@@ -1,13 +1,13 @@
 permissions:
   contents: write
 
-name: 🔥 Advanced Downloader - Phase 2
+name: 🔥 Advanced Downloader - Phase 3 (Final)
 
 on:
   workflow_dispatch:
     inputs:
       activation_code:
-        description: '🔑 کد فعالسازی'
+        description: '🔑 کد فعالسازی (فقط بار اول)'
         required: false
       urls:
         description: '🔗 لینک‌ها (با فاصله)'
@@ -37,8 +37,6 @@ on:
           - off
           - on
 
-
-
 env:
   VALID_CODE: "1234"
 
@@ -47,16 +45,18 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-      - uses: actions/checkout@v4
+      - name: 📥 Checkout
+        uses: actions/checkout@v4
         with:
           fetch-depth: 0
 
-      - name: Install tools
+      - name: 🧰 Install tools
         run: sudo apt update && sudo apt install -y aria2 zip
 
-      - name: Make scripts executable
+      - name: 🔓 Make scripts executable
         run: chmod +x scripts/*.sh
 
+      # ---------- Activation (cached) ----------
       - name: ♻️ Restore activation cache
         uses: actions/cache@v4
         with:
@@ -67,38 +67,33 @@ jobs:
         run: ./scripts/activate.sh
         env:
           ACTIVATION_CODE: ${{ github.event.inputs.activation_code }}
-          
+
       - name: 💾 Save activation cache
         uses: actions/cache@v4
         with:
           path: .activated
           key: activation-cache-v1
 
+      # ---------- Download ----------
       - name: ⬇️ Download
         run: ./scripts/download.sh
         env:
           URLS: ${{ github.event.inputs.urls }}
 
+      # ---------- ZIP / Split ----------
       - name: 🗜️ ZIP
         run: ./scripts/zip.sh
         env:
           ZIP_MODE: ${{ github.event.inputs.zip_mode }}
           ZIP_PASSWORD: ${{ github.event.inputs.zip_password }}
 
-      - name: 📤 Upload result
-        uses: actions/upload-artifact@v4
-        with:
-          name: result
-          path: |
-            downloads
-            output.zip
-
       - name: ✂️ Split ZIP
         if: github.event.inputs.zip_mode == 'split'
         run: ./scripts/split.sh
         env:
           SPLIT_SIZE: ${{ github.event.inputs.split_size }}
-          
+
+      # ---------- Push & README ----------
       - name: 🚀 Push to repository
         if: github.event.inputs.push_mode == 'on'
         run: ./scripts/push.sh
@@ -109,4 +104,13 @@ jobs:
         if: github.event.inputs.push_mode == 'on'
         run: ./scripts/readme.sh
 
-
+      # ---------- Artifact (آخر کار) ----------
+      - name: 📤 Upload result
+        uses: actions/upload-artifact@v4
+        with:
+          name: result
+          path: |
+            downloads
+            output
+            output.zip
+            output.part.*
