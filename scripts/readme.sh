@@ -21,3 +21,4 @@ for DIR in output/*; do
   done
 
   echo "" >> README.md
+done
