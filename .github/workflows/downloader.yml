@@ -1,13 +1,13 @@
 permissions:
   contents: write
 
-name: 🔥 Auto Downloader (Commercial)
+name: 🔥 Auto Downloader (Main Branch)
 
 on:
   workflow_dispatch:
     inputs:
       activation_code:
-        description: '🔑 Activation code (once)'
+        description: '🔑 Activation code'
         required: false
       urls:
         description: '🔗 Download link'
@@ -60,26 +60,14 @@ jobs:
         env:
           URLS: ${{ github.event.inputs.urls }}
 
-      - name: 🗜️ ZIP
+      - name: 🗜️ ZIP + Split (WinRAR)
         run: ./scripts/zip.sh
         env:
           ZIP_MODE: ${{ github.event.inputs.zip_mode }}
           ZIP_PASSWORD: ${{ github.event.inputs.zip_password }}
 
-      - name: ✂️ Auto Split (50MB)
-        if: github.event.inputs.zip_mode == 'zip'
-        run: ./scripts/split.sh
-
-      - name: 🚀 Auto Push
+      - name: 🚀 Push to main
         run: ./scripts/push.sh
 
       - name: 📝 README
         run: ./scripts/readme.sh
-
-      - name: 📤 Artifact
-        uses: actions/upload-artifact@v4
-        with:
-          name: result
-          path: |
-            output
-            downloads
