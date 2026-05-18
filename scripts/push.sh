@@ -1,33 +1,22 @@
 #!/bin/bash
 set -e
 
-BRANCH="${PUSH_BRANCH:-downloads}"
+BRANCH="downloads"
 OUTDIR="output"
-
-echo "📂 Current dir:"
-pwd
-ls -lah
 
 git config user.name "github-actions"
 git config user.email "actions@github.com"
 
 mkdir -p "$OUTDIR"
 
-echo "📦 Copying files..."
-[ -d downloads ] && cp -r downloads "$OUTDIR/"
-[ -f output.zip ] && cp output.zip "$OUTDIR/"
-ls output.part.* 2>/dev/null && cp output.part.* "$OUTDIR/" || true
+cp output.part.* "$OUTDIR/" 2>/dev/null || true
+cp -r downloads "$OUTDIR/" 2>/dev/null || true
 
-echo "🌿 Switching branch..."
 git checkout -B "$BRANCH"
-
-echo "📁 Files in output/:"
-ls -lah "$OUTDIR"
-
 git add "$OUTDIR"
 
 if git diff --cached --quiet; then
-  echo "⚠️ Nothing staged – aborting push"
+  echo "ℹ️ Nothing to push"
   exit 0
 fi
 
